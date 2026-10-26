@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LATIHAN SOAL ASSIKS - SDN TRIMULYO 02</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-indigo-700 font-bold p-2 rounded-lg shadow-md flex items-center justify-center w-10 h-10 text-xl">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">SDN TRIMULYO 02</h1>
+                    <p class="text-xs text-indigo-200">LATIHAN SOAL ASSIKS - BAHASA INDONESIA KELAS VI</p>
+                </div>
+            </div>
+            <!-- Timer Display (Hidden on login/rekap) -->
+            <div id="header-timer" class="hidden bg-red-600 text-white font-mono font-bold px-4 py-2 rounded-lg shadow flex items-center gap-2 animate-pulse">
+                <i class="fas fa-clock"></i>
+                <span id="timer-display">60:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- 1. HALAMAN LOGIN -->
+        <div id="screen-login" class="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-6">
+            <div class="text-center mb-6">
+                <div class="inline-block p-4 bg-indigo-50 rounded-full text-indigo-600 mb-3">
+                    <i class="fas fa-user-edit text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Login Peserta Ujian</h2>
+                <p class="text-sm text-slate-500">Asesmen Siswa Standar Kota Semarang (ASSIKS)</p>
+            </div>
+
+            <form id="login-form" onsubmit="startExam(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="input-nama" required placeholder="Contoh: Ananda Rizky" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor Absen</label>
+                        <input type="number" id="input-absen" required min="1" max="50" placeholder="01" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Kelas</label>
+                        <select id="input-kelas" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white">
+                            <option value="6A">6A</option>
+                            <option value="6B">6B</option>
+                            <option value="6C">6C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 flex items-center justify-center gap-2">
+                        <i class="fas fa-play"></i> Mulai Ujian
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. HALAMAN SOAL (UJIAN) -->
+        <div id="screen-exam" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Left Side: Soal & Teks Bacaan -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Banner Pengingat Waktu Habis (Jika Ada) -->
+                <div id="time-out-banner" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded-lg shadow-sm">
+                    <p class="font-bold flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> Maaf waktu habis, terima kasih atas partisipasinya!
+                    </p>
+                    <p class="text-sm">Anda dapat meninjau kunci jawaban, pembahasan, dan melihat hasil rekapitulasi nilai.</p>
+                </div>
+
+                <!-- Card Teks Bacaan & Soal -->
+                <div class="bg-white rounded-2xl shadow-md p-6 border border-slate-200">
+                    <!-- Text Bacaan Container -->
+                    <div id="bacaan-container" class="mb-6 p-4 bg-slate-50 border-l-4 border-indigo-500 rounded-r-lg text-slate-700 text-sm md:text-base leading-relaxed max-h-60 overflow-y-auto custom-scrollbar">
+                        <!-- Teks bacaan akan dirender di sini via JS -->
+                    </div>
+
+                    <!-- Nomor & Pertanyaan -->
+                    <div class="mb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded">Soal No. <span id="question-number">1</span> Dari 30</span>
+                        <h3 id="question-text" class="text-lg font-bold text-slate-800 mt-2">
+                            <!-- Pertanyaan -->
+                        </h3>
+                    </div>
+
+                    <!-- Pilihan Jawaban -->
+                    <div id="options-container" class="space-y-3 mb-6">
+                        <!-- Pilihan A, B, C, D di-render via JS -->
+                    </div>
+
+                    <!-- Pembahasan (Hanya muncul jika ujian telah selesai) -->
+                    <div id="pembahasan-box" class="hidden mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <h4 class="font-bold text-blue-800 flex items-center gap-2 mb-1">
+                            <i class="fas fa-lightbulb"></i> Kunci Jawaban & Pembahasan:
+                        </h4>
+                        <p id="pembahasan-text" class="text-sm text-blue-900 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Tombol Navigasi Bawah -->
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                    <button id="btn-prev" onclick="prevQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Soal Sebelumnya
+                    </button>
+                    <button id="btn-next" onclick="nextQuestion()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2">
+                        Soal Selanjutnya <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="btn-finish" onclick="finishExamPrompt()" class="hidden bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-5 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i> Selesaika Ujian
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Navigasi Nomor Soal Grid -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-md p-5 border border-slate-200 sticky top-20">
+                    <h3 class="font-bold text-slate-800 mb-3 pb-2 border-b text-sm uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-th"></i> Navigasi Soal
+                    </h3>
+                    
+                    <!-- Status Keterangan Warna -->
+                    <div class="grid grid-cols-2 gap-2 text-xs mb-4 text-slate-600">
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-200 border"></span> Belum</div>
+                        <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-600"></span> Dikerjakan</div>
+                    </div>
+
+                    <!-- Kotak Navigasi (Sejajar 3 Baris / Grid Column) -->
+                    <div id="question-grid" class="grid grid-cols-5 lg:grid-cols-3 gap-2 max-h-[350px] overflow-y-auto custom-scrollbar p-1">
+                        <!-- Grid 1 - 30 dirender via JS -->
+                    </div>
+
+                    <div id="rekap-link-container" class="hidden mt-6 pt-4 border-t">
+                        <button onclick="showResultsScreen()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-sm shadow transition flex items-center justify-center gap-2">
+                            <i class="fas fa-chart-bar"></i> Lihat Rekap & Peringkat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. HALAMAN REKAP HASIL & PERINGKAT -->
+        <div id="screen-results" class="hidden space-y-6">
+            
+            <!-- Banner Ujian Selesai -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl shadow-xl p-6 md:p-8 text-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Selamat, Anda telah menyelesaikan tugas !</h2>
+                    <p class="text-emerald-100 text-sm md:text-base mb-6">Hasil evaluasi Latihan Soal ASSIKS Bahasa Indonesia SDN Trimulyo 02</p>
+                    
+                    <div class="inline-flex flex-wrap justify-center gap-4 bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20">
+                        <div class="text-center px-4">
+                            <p class="text-xs uppercase tracking-wider text-emerald-200">Skor Anda</p>
+                            <p id="user-score" class="text-4xl font-extrabold text-white">0</p>
+                        </div>
+                        <div class="w-px bg-white/20 hidden sm:block"></div>
+                        <div class="text-center px-4">
+                            <p class="text-xs uppercase tracking-wider text-emerald-200">Peringkat</p>
+                            <p id="user-rank" class="text-4xl font-extrabold text-amber-300">#1</p>
+                        </div>
+                        <div class="w-px bg-white/20 hidden sm:block"></div>
+                        <div class="text-center px-4">
+                            <p class="text-xs uppercase tracking-wider text-emerald-200">Benar / Salah</p>
+                            <p id="user-correct-wrong" class="text-2xl font-bold text-white mt-1">0 / 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABEL 1: ANALISIS PENILAIAN SISWA (FORMAT CANVA MATRIX B/S PER SOAL) -->
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-slate-200">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2">
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-table text-indigo-600"></i> Analisis Penilaian Siswa (Detail Jawaban)
+                        </h3>
+                        <p class="text-xs text-slate-500">Kolom 1 hingga 30 merepresentasikan nomor soal (Hijau = Benar, Merah = Salah/Kosong)</p>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-semibold">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-emerald-500 rounded"></span> Benar</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-rose-500 rounded"></span> Salah / Kosong</span>
+                    </div>
+                </div>
+
+                <!-- Matrix Table Container (Scroll Horizontal) -->
+                <div class="overflow-x-auto custom-scrollbar border rounded-xl">
+                    <table class="w-full text-xs text-center border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold border-b">
+                                <th class="p-3 text-left min-w-[140px] border-r">Nama Siswa</th>
+                                <th class="p-3 border-r min-w-[60px]">Kelas</th>
+                                <th class="p-3 border-r min-w-[60px]">Absen</th>
+                                <!-- Dynamic Header 1 - 30 -->
+                                <script>
+                                    for(let i=1; i<=30; i++){
+                                        document.write(`<th class="p-2 border-r min-w-[36px]">${i}</th>`);
+                                    }
+                                </script>
+                                <th class="p-3 min-w-[70px]">Skor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrix-analysis-tbody">
+                            <!-- Matrix Row Data injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TABEL 2: REKAP PERINGKAT SELURUH PESERTA -->
+            <div class="bg-white rounded-2xl shadow-md p-6 border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-trophy text-amber-500"></i> Rekap Peringkat Peserta
+                </h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold border-b">
+                                <th class="p-3">Peringkat</th>
+                                <th class="p-3">Nama Peserta</th>
+                                <th class="p-3">Kelas</th>
+                                <th class="p-3">No. Absen</th>
+                                <th class="p-3 text-center">Jawaban Benar</th>
+                                <th class="p-3 text-right">Skor Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            <!-- Leaderboard list via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="flex justify-between items-center pt-4">
+                <button onclick="reviewExam()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition flex items-center gap-2">
+                    <i class="fas fa-search"></i> Review Pembahasan Soal
+                </button>
+                <button onclick="exitApplication()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-lg shadow transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
+        <p>© 2026 SDN TRIMULYO 02 - Tim Asesmen Sekolah Kota Semarang</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ==========================================================================
+           DATA SOAL (30 SOAL LENGKAP DARI PDF BESERTA BACAAN & PEMBAHASAN)
+           ========================================================================== */
+        
+        const BACAAN_1 = `<strong>Bacaan 1: Hutan Mangrove Penjaga Pantai</strong><br>
+Hutan mangrove memiliki peran penting dalam menjaga ekosistem pantai. Akar-akar mangrove mampu menahan abrasi, yaitu pengikisan pantai oleh air laut. Selain itu, hutan mangrove menjadi tempat hidup berbagai hewan seperti kepiting, ikan kecil, burung, dan udang. Keberadaan mangrove juga membantu menjaga kualitas air laut karena menyaring limbah yang terbawa dari daratan. Namun, banyak hutan mangrove yang ditebang untuk dijadikan tambak atau lahan pemukiman. Jika hal ini dibiarkan, maka ekosistem pantai bisa rusak dan ikan-ikan sulit berkembang biak. Oleh karena itu, menjaga kelestarian hutan mangrove menjadi tanggung jawab bersama. Pemerintah, masyarakat, dan anak-anak sekolah dapat ikut serta menanam kembali mangrove di wilayah pantai. Dengan demikian, pantai tetap terjaga dan kehidupan laut pun terlindungi.`;
+
+        const BACAAN_2 = `<strong>Bacaan 2: Transportasi Ramah Lingkungan</strong><br>
+Di kota besar, jumlah kendaraan semakin banyak setiap tahunnya. Hal ini menyebabkan polusi udara dan kemacetan lalu lintas. Untuk mengatasi masalah tersebut, pemerintah mulai mendorong penggunaan transportasi ramah lingkungan. Contohnya adalah sepeda, bus listrik, dan kereta cepat. Sepeda tidak menghasilkan polusi dan dapat membuat tubuh sehat. Bus listrik mampu mengurangi emisi gas buang yang mencemari udara. Sementara itu, kereta cepat bisa mengangkut banyak penumpang sekaligus sehingga mengurangi jumlah mobil pribadi di jalan. Masyarakat juga diajak untuk berjalan kaki jika jarak tujuan tidak terlalu jauh. Dengan demikian, kualitas udara kota bisa membaik dan kehidupan masyarakat menjadi lebih sehat.`;
+
+        const BACAAN_3 = `<strong>Bacaan 3: Energi Matahari untuk Kehidupan</strong><br>
+Matahari adalah sumber energi terbesar bagi bumi. Cahaya matahari membuat tumbuhan dapat melakukan fotosintesis sehingga menghasilkan oksigen. Energi matahari juga membantu manusia mengeringkan pakaian, menjemur padi, dan memanaskan air. Saat ini, banyak negara mulai memanfaatkan energi matahari menjadi listrik dengan menggunakan panel surya. Listrik dari matahari ini disebut energi terbarukan karena tidak akan habis dan ramah lingkungan. Berbeda dengan bahan bakar fosil seperti minyak dan batu bara yang bisa menimbulkan polusi. Jika masyarakat semakin banyak menggunakan energi matahari, maka udara menjadi lebih bersih dan cadangan bahan bakar fosil bisa dihemat.`;
+
+        const questionsData = [
+            // Bacaan 1 (Soal 1 - 10)
+            {
+                bacaan: BACAAN_1,
+                question: "1. Apa fungsi utama akar mangrove bagi pantai?",
+                options: ["A. Menahan abrasi laut", "B. Tempat berkembang biak burung", "C. Menghasilkan oksigen", "D. Menyaring cahaya matahari"],
+                answer: 0,
+                explanation: "Sesuai paragraf pertama bacaan: 'Akar-akar mangrove mampu menahan abrasi, yaitu pengikisan pantai oleh air laut.'"
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "2. Mengapa hutan mangrove disebut penyaring alami?",
+                options: ["A. Karena menahan pasir agar tidak terbawa air", "B. Karena menyaring limbah dari daratan", "C. Karena menghasilkan udara segar", "D. Karena menyerap sinar matahari"],
+                answer: 1,
+                explanation: "Di dalam bacaan disebutkan: 'Keberadaan mangrove juga membantu menjaga kualitas air laut karena menyaring limbah yang terbawa dari daratan.'"
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "3. Jika hutan mangrove habis ditebang, akibat yang mungkin terjadi adalah ...",
+                options: ["A. Pantai semakin luas", "B. Ikan lebih cepat berkembang biak", "C. Ekosistem pantai rusak", "D. Air laut menjadi lebih tawar"],
+                answer: 2,
+                explanation: "Teks menjelaskan: 'Jika hal ini dibiarkan (penebangan), maka ekosistem pantai bisa rusak dan ikan-ikan sulit berkembang biak.'"
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "4. Kata abrasi pada bacaan memiliki arti...",
+                options: ["A. Penyuburan tanah", "B. Pengikisan pantai", "C. Gelombang besar", "D. Perubahan cuaca"],
+                answer: 1,
+                explanation: "Dalam kalimat teks tertulis secara eksplisit: '...menahan abrasi, yaitu pengikisan pantai oleh air laut.'"
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "5. Makna penting dari bacaan adalah ...",
+                options: ["A. Hutan mangrove bisa dijadikan tambak", "B. Pantai tidak butuh hutan mangrove", "C. Masyarakat perlu menebang mangrove", "D. Hutan mangrove harus dijaga kelestariannya"],
+                answer: 3,
+                explanation: "Inti dan amanat dari bacaan tersebut adalah pentingnya menjaga kelestarian hutan mangrove sebagai penjaga pantai."
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "6. Siapa yang berperan dalam menjaga kelestarian hutan mangrove?",
+                options: ["A. Hanya pemerintah", "B. Hanya nelayan", "C. Semua pihak", "D. Hanya anak sekolah"],
+                answer: 2,
+                explanation: "Teks menyatakan: 'Oleh karena itu, menjaga kelestarian hutan mangrove menjadi tanggung jawab bersama (Pemerintah, masyarakat, dan anak-anak sekolah).'"
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "7. Mengapa penulis menekankan bahwa anak-anak juga bisa menanam mangrove?",
+                options: ["A. Agar pantai menjadi tempat bermain", "B. Agar hutan cepat habis ditebang", "C. Supaya anak-anak mendapat uang tambahan", "D. Untuk mengajarkan sejak dini menjaga lingkungan"],
+                answer: 3,
+                explanation: "Keterlibatan anak-anak sekolah bertujuan menanamkan kepedulian dan rasa tanggung jawab menjaga lingkungan sejak dini."
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "8. Informasi yang tidak terdapat dalam bacaan adalah ...",
+                options: ["A. Hutan mangrove dapat menyaring limbah", "B. Hutan mangrove bisa ditebang untuk tambak", "C. Hutan mangrove menghasilkan kayu berkualitas", "D. Hutan mangrove tempat hidup hewan"],
+                answer: 2,
+                explanation: "Pernyataan C (menghasilkan kayu berkualitas) tidak ada dijelaskan di dalam teks bacaan."
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "9. Pernyataan yang sesuai dengan isi bacaan adalah ...",
+                options: ["A. Abrasi membuat pantai semakin kuat", "B. Mangrove bermanfaat untuk ekosistem laut", "C. Mangrove tumbuh hanya di gunung", "D. Mangrove bisa hidup tanpa air laut"],
+                answer: 1,
+                explanation: "Pernyataan B sangat sesuai, mangrove memberikan banyak manfaat bagi perlindungan ekosistem laut dan pantai."
+            },
+            {
+                bacaan: BACAAN_1,
+                question: "10. Bacaan ini mendorong pembaca untuk ...",
+                options: ["A. Menanam mangrove kembali", "B. Membakar hutan mangrove", "C. Membuat tambak di hutan mangrove", "D. Membiarkan pantai tanpa mangrove"],
+                answer: 0,
+                explanation: "Teks mengajak pembaca untuk ikut serta menanam kembali mangrove di wilayah pantai."
+            },
+
+            // Bacaan 2 (Soal 11 - 20)
+            {
+                bacaan: BACAAN_2,
+                question: "11. Apa penyebab utama polusi udara di kota besar menurut bacaan?",
+                options: ["A. Banyaknya pabrik", "B. Adanya kereta cepat", "C. Banyaknya kendaraan bermotor", "D. Masyarakat berjalan kaki"],
+                answer: 2,
+                explanation: "Teks menyebutkan: 'Di kota besar, jumlah kendaraan semakin banyak setiap tahunnya. Hal ini menyebabkan polusi udara...'"
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "12. Mengapa sepeda dianggap ramah lingkungan?",
+                options: ["A. Karena tidak memerlukan bahan bakar", "B. Karena bisa melaju sangat cepat", "C. Karena bisa mengangkut banyak penumpang", "D. Karena harganya murah"],
+                answer: 0,
+                explanation: "Sepeda tidak menghasilkan emisi polusi karena dikayuh tenaga manusia tanpa bahan bakar fosil."
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "13. Transportasi yang dapat mengurangi emisi gas buang adalah ...",
+                options: ["A. Sepeda motor", "B. Bus listrik", "C. Mobil pribadi", "D. Bajaj"],
+                answer: 1,
+                explanation: "Teks menyebutkan: 'Bus listrik mampu mengurangi emisi gas buang yang mencemari udara.'"
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "14. Apa manfaat kereta cepat bagi masyarakat kota?",
+                options: ["A. Mengurangi jumlah mobil pribadi di jalan", "B. Membuat kemacetan lebih panjang", "C. Memboroskan energi listrik", "D. Menghasilkan polusi udara"],
+                answer: 0,
+                explanation: "Di teks tertulis: 'kereta cepat bisa mengangkut banyak penumpang sekaligus sehingga mengurangi jumlah mobil pribadi di jalan.'"
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "15. Menurut bacaan, apa yang dapat dilakukan masyarakat untuk perjalanan dekat?",
+                options: ["A. Menggunakan mobil pribadi", "B. Mengendarai motor besar", "C. Naik pesawat", "D. Berjalan kaki"],
+                answer: 3,
+                explanation: "Di dalam bacaan disebutkan: 'Masyarakat juga diajak untuk berjalan kaki jika jarak tujuan tidak terlalu jauh.'"
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "16. Kata emisi pada bacaan memiliki arti...",
+                options: ["A. Pencemaran", "B. Pelepasan gas buang", "C. Kecepatan transportasi", "D. Perjalanan jauh"],
+                answer: 1,
+                explanation: "Emisi dalam konteks ini merujuk pada pelepasan zat/gas buang sisa pembakaran kendaraan."
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "17. Apa tujuan utama pemerintah mendorong penggunaan transportasi ramah lingkungan?",
+                options: ["A. Membuat kota menjadi lebih padat", "B. Meningkatkan polusi udara", "C. Mengurangi polusi dan kemacetan", "D. Mengurangi jumlah sepeda di jalan"],
+                answer: 2,
+                explanation: "Tujuan utama sebagaimana dipaparkan di awal teks adalah mengatasi masalah polusi udara dan kemacetan."
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "18. Pernyataan yang sesuai dengan isi bacaan adalah ...",
+                options: ["A. Sepeda membuat tubuh sehat dan ramah lingkungan", "B. Kereta cepat menyebabkan polusi udara", "C. Bus listrik lebih berbahaya dibanding mobil pribadi", "D. Jalan kaki menyebabkan kemacetan"],
+                answer: 0,
+                explanation: "Pernyataan A sesuai dengan teks: 'Sepeda tidak menghasilkan polusi dan dapat membuat tubuh sehat.'"
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "19. Informasi yang tidak ada dalam bacaan adalah ...",
+                options: ["A. Sepeda membuat tubuh sehat", "B. Kereta cepat bisa mengurangi jumlah mobil pribadi", "C. Bus listrik ramah lingkungan", "D. Mobil pribadi menghasilkan energi Listrik"],
+                answer: 3,
+                explanation: "Pernyataan D (Mobil pribadi menghasilkan energi listrik) tidak termuat di dalam teks."
+            },
+            {
+                bacaan: BACAAN_2,
+                question: "20. Bacaan ini mengajarkan kita untuk ...",
+                options: ["A. Membiasakan diri naik mobil pribadi", "B. Memilih transportasi ramah lingkungan", "C. Menggunakan kendaraan sebanyak mungkin", "D. Membuat jalan semakin padat"],
+                answer: 1,
+                explanation: "Pesan utama bacaan adalah mengajak masyarakat membiasakan diri memilih transportasi ramah lingkungan."
+            },
+
+            // Bacaan 3 (Soal 21 - 30)
+            {
+                bacaan: BACAAN_3,
+                question: "21. Mengapa matahari disebut sumber energi terbesar bagi bumi?",
+                options: ["A. Karena memberi cahaya dan panas", "B. Karena bisa menimbulkan polusi dan pencemaran", "C. Karena habis dipakai manusia terus-menerus", "D. Karena hanya dimanfaatkan tumbuhan dan hewan"],
+                answer: 0,
+                explanation: "Matahari menyediakan kelimpahan energi berupa pancaran cahaya dan panas alami bagi kehidupan bumi."
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "22. Proses fotosintesis pada tumbuhan menghasilkan ...",
+                options: ["A. Air dan tanah", "B. Oksigen dan makanan", "C. Gas buang", "D. Cahaya matahari"],
+                answer: 1,
+                explanation: "Teks menyatakan: 'Cahaya matahari membuat tumbuhan dapat melakukan fotosintesis sehingga menghasilkan oksigen (dan makanan bagi tumbuhan).'"
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "23. Energi matahari yang diubah menjadi listrik disebut...",
+                options: ["A. Energi tak terbarukan", "B. Energi fosil", "C. Energi terbarukan", "D. Energi kimia"],
+                answer: 2,
+                explanation: "Di teks tertulis: 'Listrik dari matahari ini disebut energi terbarukan karena tidak akan habis...'"
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "24. Alat yang digunakan untuk mengubah sinar matahari menjadi listrik adalah ...",
+                options: ["A. Kincir angin", "B. Panel surya", "C. Baterai biasa", "D. Generator minyak"],
+                answer: 1,
+                explanation: "Sesuai bacaan: '...memanfaatkan energi matahari menjadi listrik dengan menggunakan panel surya.'"
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "25. Perbedaan energi matahari dengan bahan bakar fosil adalah ...",
+                options: ["A. Matahari bisa habis, fosil tidak", "B. Energi matahari berbahaya, fosil aman", "C. Fosil mudah didapat, matahari tidak", "D. Energi matahari ramah lingkungan, fosil menimbulkan polusi"],
+                answer: 3,
+                explanation: "Teks membandingkan: Energi matahari tidak habis & ramah lingkungan, sedangkan bahan bakar fosil bisa menimbulkan polusi."
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "26. Kata terbarukan dalam bacaan berarti...",
+                options: ["A. Bisa diperbarui dan tidak habis", "B. Cepat habis", "C. Berasal dari fosil", "D. Menimbulkan polusi"],
+                answer: 0,
+                explanation: "Terbarukan bermakna sumber energi alami yang secara terus menerus dapat diperbarui dan tidak akan pernah habis."
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "27. Apa dampak jika masyarakat semakin banyak menggunakan energi matahari?",
+                options: ["A. Polusi udara meningkat", "B. Cadangan fosil semakin habis", "C. Udara menjadi lebih bersih", "D. Pemanasan global semakin parah"],
+                answer: 2,
+                explanation: "Teks menyebutkan: 'Jika masyarakat semakin banyak menggunakan energi matahari, maka udara menjadi lebih bersih...'"
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "28. Pernyataan yang sesuai dengan isi bacaan adalah ...",
+                options: ["A. Energi matahari ramah lingkungan", "B. Batu bara lebih ramah dibanding matahari", "C. Panel surya menghasilkan oksigen", "D. Energi matahari sulit digunakan"],
+                answer: 0,
+                explanation: "Pernyataan A terbukti benar sesuai paragraf kedua pada Teks Bacaan 3."
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "29. Informasi yang tidak terdapat dalam bacaan adalah ...",
+                options: ["A. Energi matahari bisa dijadikan listrik", "B. Panel surya dipasang di atap rumah", "C. Minyak bumi bisa menimbulkan polusi", "D. Energi matahari ramah lingkungan"],
+                answer: 1,
+                explanation: "Pernyataan B (Panel surya dipasang di atap rumah) tidak dicantumkan secara khusus pada kalimat di teks."
+            },
+            {
+                bacaan: BACAAN_3,
+                question: "30. Bacaan ini mendorong pembaca untuk ...",
+                options: ["A. Mengandalkan energi fosil", "B. Menggunakan energi matahari", "C. Membiarkan matahari tidak dimanfaatkan", "D. Menimbun bahan bakar minyak"],
+                answer: 1,
+                explanation: "Teks mengedukasi serta mendorong pembaca untuk beralih memanfaatkan energi ramah lingkungan yaitu energi matahari."
+            }
+        ];
+
+        /* ==========================================================================
+           DUMMY DATA PESERTA LAIN (UNTUK PERINGKAT DAN REKAP ANALISIS)
+           ========================================================================== */
+        let participantsData = [
+            { nama: "Siti Rahmawati", kelas: "6A", absen: "12", answers: [0,1,2,1,3,2,3,2,1,0,2,0,1,0,3,1,2,0,3,1,0,1,2,1,3,0,2,0,1,1], score: 100 },
+            { nama: "Budi Santoso", kelas: "6B", absen: "05", answers: [0,1,2,1,3,2,3,2,1,0,2,0,1,0,3,1,2,0,3,1,0,1,2,1,3,0,2,0,1,0], score: 97 },
+            { nama: "Dewi Lestari", kelas: "6A", absen: "08", answers: [0,1,2,1,3,2,3,2,1,0,2,0,1,0,3,1,2,0,3,1,0,1,2,1,0,0,2,0,1,1], score: 93 },
+            { nama: "Ahmad Fauzi", kelas: "6C", absen: "02", answers: [0,1,2,1,3,2,3,2,1,0,2,0,1,0,3,1,2,0,1,1,0,1,2,1,3,0,2,0,0,0], score: 87 },
+            { nama: "Citra Kirana", kelas: "6A", absen: "06", answers: [0,1,2,1,3,2,3,2,0,0,2,0,1,0,3,1,2,0,3,1,0,1,0,1,3,0,1,0,1,1], score: 83 }
+        ];
+
+        /* ==========================================================================
+           STATE APLIKASI
+           ========================================================================== */
+        let currentUser = {
+            nama: "",
+            absen: "",
+            kelas: "6A",
+            answers: new Array(30).fill(null),
+            score: 0,
+            isFinished: false
+        };
+
+        let currentQuestionIndex = 0;
+        let timerInterval = null;
+        let timeRemaining = 60 * 60; // 60 Menit dalam detik
+
+        /* ==========================================================================
+           LOGIK APLIKASI & EVENT HANDLERS
+           ========================================================================== */
+
+        // Start Exam Function
+        function startExam(e) {
+            e.preventDefault();
+            const nama = document.getElementById('input-nama').value.trim();
+            const absen = document.getElementById('input-absen').value;
+            const kelas = document.getElementById('input-kelas').value;
+
+            if(!nama || !absen) return;
+
+            currentUser.nama = nama;
+            currentUser.absen = absen;
+            currentUser.kelas = kelas;
+
+            // Transisi Layar
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-exam').classList.remove('hidden');
+            document.getElementById('header-timer').classList.remove('hidden');
+
+            renderQuestionGrid();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        // Timer Countdown
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                
+                document.getElementById('timer-display').innerText = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    autoFinishOnTimeout();
+                }
+            }, 1000);
+        }
+
+        // Timer Habis Handling
+        function autoFinishOnTimeout() {
+            currentUser.isFinished = true;
+            calculateScore();
+
+            // Tampilkan Alert/Banner Waktu Habis
+            document.getElementById('time-out-banner').classList.remove('hidden');
+            document.getElementById('rekap-link-container').classList.remove('hidden');
+            document.getElementById('header-timer').classList.add('bg-slate-500');
+            document.getElementById('header-timer').classList.remove('bg-red-600', 'animate-pulse');
+            document.getElementById('timer-display').innerText = "WAKTU HABIS";
+
+            // Buka akses penjelasan kunci jawaban
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Load Pertanyaan Spesifik
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const qData = questionsData[index];
+
+            // Render Bacaan & Pertanyaan
+            document.getElementById('bacaan-container').innerHTML = qData.bacaan;
+            document.getElementById('question-number').innerText = index + 1;
+            document.getElementById('question-text').innerText = qData.question;
+
+            // Render Pilihan Jawaban
+            const optionsBox = document.getElementById('options-container');
+            optionsBox.innerHTML = '';
+
+            qData.options.forEach((opt, optIdx) => {
+                const isSelected = currentUser.answers[index] === optIdx;
+                
+                let btnStyle = "bg-white border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-700";
+                
+                if (isSelected) {
+                    btnStyle = "bg-indigo-50 border-indigo-600 text-indigo-900 font-medium ring-2 ring-indigo-500/20";
+                }
+
+                // Jika sudah selesai/waktu habis, tampilkan penanda Benar/Salah
+                if (currentUser.isFinished) {
+                    if (optIdx === qData.answer) {
+                        btnStyle = "bg-emerald-100 border-emerald-500 text-emerald-900 font-bold";
+                    } else if (isSelected && isSelected !== (optIdx === qData.answer)) {
+                        btnStyle = "bg-rose-100 border-rose-500 text-rose-900 line-through";
+                    }
+                }
+
+                const optBtn = document.createElement('button');
+                optBtn.className = `w-full text-left p-3.5 rounded-xl border text-sm md:text-base transition flex items-center justify-between ${btnStyle}`;
+                optBtn.onclick = () => selectAnswer(optIdx);
+                optBtn.innerHTML = `
+                    <span>${opt}</span>
+                    ${isSelected ? '<i class="fas fa-check-circle text-indigo-600 text-lg"></i>' : ''}
+                `;
+                
+                if (currentUser.isFinished && optIdx === qData.answer) {
+                    optBtn.innerHTML += `<span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded ml-2">Kunci Jawaban</span>`;
+                }
+
+                optionsBox.appendChild(optBtn);
+            });
+
+            // Tampilkan Pembahasan jika Ujian Selesai
+            const pembahasanBox = document.getElementById('pembahasan-box');
+            if (currentUser.isFinished) {
+                pembahasanBox.classList.remove('hidden');
+                document.getElementById('pembahasan-text').innerText = qData.explanation;
+            } else {
+                pembahasanBox.classList.add('hidden');
+            }
+
+            // Update Tombol Navigasi Bawah
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            const btnFinish = document.getElementById('btn-finish');
+
+            // Syarat Soal No 1
+            if (index === 0) {
+                btnPrev.classList.add('hidden');
+            } else {
+                btnPrev.classList.remove('hidden');
+            }
+
+            // Syarat Soal Terakhir (30)
+            if (index === questionsData.length - 1) {
+                btnNext.classList.add('hidden');
+                if(!currentUser.isFinished) btnFinish.classList.remove('hidden');
+            } else {
+                btnNext.classList.remove('hidden');
+                btnFinish.classList.add('hidden');
+            }
+
+            renderQuestionGrid();
+        }
+
+        // Simpan Jawaban Siswa
+        function selectAnswer(optionIndex) {
+            if (currentUser.isFinished) return; // Kunci jika ujian telah selesai
+            
+            currentUser.answers[currentQuestionIndex] = optionIndex;
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Navigasi
+        function nextQuestion() {
+            if (currentQuestionIndex < questionsData.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                loadQuestion(currentQuestionIndex - 1);
+            }
+        }
+
+        // Render Kotak Grid Navigasi 3 Baris / Multi Kolom
+        function renderQuestionGrid() {
+            const gridContainer = document.getElementById('question-grid');
+            gridContainer.innerHTML = '';
+
+            questionsData.forEach((_, idx) => {
+                const isAnswered = currentUser.answers[idx] !== null;
+                const isCurrent = idx === currentQuestionIndex;
+
+                let stateClass = "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300"; // Belum dikerjakan
+
+                if (isAnswered) {
+                    stateClass = "bg-indigo-600 text-white font-semibold border-indigo-700"; // Sudah dikerjakan
+                }
+
+                if (isCurrent) {
+                    stateClass += " ring-2 ring-indigo-500 ring-offset-1 font-bold";
+                }
+
+                // Jika Selesai (Warna Benar / Salah)
+                if (currentUser.isFinished) {
+                    const isCorrect = currentUser.answers[idx] === questionsData[idx].answer;
+                    if (isCorrect) {
+                        stateClass = "bg-emerald-600 text-white font-bold";
+                    } else {
+                        stateClass = "bg-rose-500 text-white font-bold";
+                    }
+                }
+
+                const gridBtn = document.createElement('button');
+                gridBtn.className = `h-10 text-xs md:text-sm rounded-lg border flex items-center justify-center transition shadow-sm ${stateClass}`;
+                gridBtn.innerText = idx + 1;
+                gridBtn.onclick = () => loadQuestion(idx);
+
+                gridContainer.appendChild(gridBtn);
+            });
+        }
+
+        // Konfirmasi & Selesaikan Ujian
+        function finishExamPrompt() {
+            const unanswered = currentUser.answers.filter(a => a === null).length;
+            let msg = "Apakah Anda yakin ingin menyelesaikan ujian ini?";
+            if(unanswered > 0) {
+                msg = `Masih ada ${unanswered} soal yang belum dijawab. Yakin ingin menyelesaikan ujian?`;
+            }
+
+            if (confirm(msg)) {
+                clearInterval(timerInterval);
+                currentUser.isFinished = true;
+                calculateScore();
+                showResultsScreen();
+            }
+        }
+
+        // Hitung Nilai Akhir
+        function calculateScore() {
+            let correctCount = 0;
+            currentUser.answers.forEach((ans, idx) => {
+                if (ans === questionsData[idx].answer) {
+                    correctCount++;
+                }
+            });
+
+            // Bobot Nilai 0 - 100
+            currentUser.score = Math.round((correctCount / questionsData.length) * 100);
+            
+            // Masukkan data siswa saat ini ke daftar rekapitulasi umum
+            const existingIndex = participantsData.findIndex(p => p.nama === currentUser.nama && p.absen === currentUser.absen);
+            if(existingIndex >= 0) {
+                participantsData[existingIndex] = { ...currentUser };
+            } else {
+                participantsData.push({ ...currentUser });
+            }
+
+            // Urutkan peringkat berdasarkan Skor Tertinggi
+            participantsData.sort((a, b) => b.score - a.score);
+        }
+
+        // Tampilkan Halaman Rekap & Peringkat
+        function showResultsScreen() {
+            document.getElementById('screen-exam').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('hidden');
+            document.getElementById('header-timer').classList.add('hidden');
+
+            // Render Statistik User
+            document.getElementById('user-score').innerText = currentUser.score;
+            
+            const correctCount = currentUser.answers.filter((ans, idx) => ans === questionsData[idx].answer).length;
+            const wrongCount = questionsData.length - correctCount;
+            document.getElementById('user-correct-wrong').innerText = `${correctCount} / ${wrongCount}`;
+
+            // Peringkat User
+            const userRankIndex = participantsData.findIndex(p => p.nama === currentUser.nama && p.absen === currentUser.absen);
+            document.getElementById('user-rank').innerText = `#${userRankIndex + 1}`;
+
+            // Render Matrix Analisis Canva (Benar = Hijau, Salah = Merah)
+            renderMatrixAnalysis();
+
+            // Render Leaderboard
+            renderLeaderboard();
+        }
+
+        // Render Analisis Penilaian Siswa Matrix (Satu kolom per soal 1-30)
+        function renderMatrixAnalysis() {
+            const tbody = document.getElementById('matrix-analysis-tbody');
+            tbody.innerHTML = '';
+
+            participantsData.forEach((student) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-slate-50 transition";
+
+                let colsHtml = `
+                    <td class="p-3 text-left font-semibold text-slate-800 border-r">${student.nama}</td>
+                    <td class="p-3 border-r">${student.kelas}</td>
+                    <td class="p-3 border-r">${student.absen}</td>
+                `;
+
+                // Loop Kolom Soal 1 s.d 30
+                for (let i = 0; i < 30; i++) {
+                    const isCorrect = student.answers[i] === questionsData[i].answer;
+                    const cellBg = isCorrect ? "bg-emerald-500 text-white" : "bg-rose-500 text-white";
+                    const symbol = isCorrect ? "B" : "S";
+
+                    colsHtml += `<td class="p-1 border-r font-bold text-xs ${cellBg}">${symbol}</td>`;
+                }
+
+                colsHtml += `<td class="p-3 font-bold text-indigo-700">${student.score}</td>`;
+                tr.innerHTML = colsHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Tabel Rekap Peringkat
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-tbody');
+            tbody.innerHTML = '';
+
+            participantsData.forEach((student, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-slate-50 transition";
+                
+                const isCurrentUser = student.nama === currentUser.nama && student.absen === currentUser.absen;
+                if(isCurrentUser) {
+                    tr.className += " bg-indigo-50/70 font-semibold";
+                }
+
+                const correctCount = student.answers.filter((ans, idx) => ans === questionsData[idx].answer).length;
+
+                let medal = index + 1;
+                if(index === 0) medal = "🥇 1";
+                else if(index === 1) medal = "🥈 2";
+                else if(index === 2) medal = "🥉 3";
+
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-700">${medal}</td>
+                    <td class="p-3 text-slate-800">${student.nama} ${isCurrentUser ? '<span class="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full ml-1">Anda</span>' : ''}</td>
+                    <td class="p-3 text-slate-600">${student.kelas}</td>
+                    <td class="p-3 text-slate-600">${student.absen}</td>
+                    <td class="p-3 text-center text-emerald-600 font-semibold">${correctCount} / 30</td>
+                    <td class="p-3 text-right font-extrabold text-indigo-700 text-base">${student.score}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Kembali ke tampilan Ujian untuk Pembahasan Soal
+        function reviewExam() {
+            document.getElementById('screen-results').classList.add('hidden');
+            document.getElementById('screen-exam').classList.remove('hidden');
+            document.getElementById('rekap-link-container').classList.remove('hidden');
+            loadQuestion(0);
+        }
+
+        // Exit Application
+        function exitApplication() {
+            if(confirm("Apakah Anda yakin ingin keluar dari aplikasi ujian?")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
